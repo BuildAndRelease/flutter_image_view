@@ -1,6 +1,7 @@
 package com.johnson.flutter_image_view.flutter_image_view
 
 import androidx.annotation.NonNull
+import com.taoweiji.flutter.flutter_platform_view.AndroidImageViewFactory
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -18,8 +19,10 @@ class FlutterImageViewPlugin: FlutterPlugin, MethodCallHandler {
   private lateinit var channel : MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    flutterPluginBinding.platformViewRegistry.registerViewFactory("gif_image_view", AndroidImageViewFactory())
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_image_view")
     channel.setMethodCallHandler(this)
+
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {

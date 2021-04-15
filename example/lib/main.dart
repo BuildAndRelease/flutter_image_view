@@ -49,8 +49,48 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Column(
+          children: [
+            Container(
+              height: 100,
+              width: 178,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(5))),
+              child: FlutterImageView.getPlatformImageView(
+                  imagePath:
+                      "https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif",
+                  radius: 5),
+            ),
+            Container(
+              height: 100,
+              width: 178,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              child: FlutterImageView.getPlatformImageView(
+                  imagePath:
+                      "https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif",
+                  radius: 10),
+            ),
+            Container(
+              height: 100,
+              width: 178,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(15))),
+              child: FlutterImageView.getPlatformImageView(
+                  imagePath:
+                      "https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif",
+                  radius: 20),
+            ),
+            Container(
+              height: 100,
+              width: 178,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              child: FlutterImageView.getPlatformImageView(
+                  imagePath:
+                      "https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif"),
+            )
+          ],
         ),
       ),
     );
