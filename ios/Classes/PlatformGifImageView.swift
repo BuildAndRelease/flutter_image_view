@@ -32,12 +32,13 @@ class PlatformGifImageView: NSObject,FlutterPlatformView {
     }
     
     func view() -> UIView {
-        let imageView = UIImageView(frame: frame)
+        let imageView = SDAnimatedImageView(frame: frame)
         imageView.tag = Int(viewId)
         guard let url = URL(string: imagePath) else {
             return imageView
         }
-        imageView.sd_setImage(with: url, placeholderImage: nil, options: .progressiveLoad, completed: nil)
+        imageView.sd_imageIndicator = SDWebImageActivityIndicator.gray
+        imageView.sd_setImage(with: url, placeholderImage: nil, options: [.lowPriority, .allowInvalidSSLCertificates, .avoidDecodeImage, .scaleDownLargeImages], completed: nil)
         imageView.layer.cornerRadius = radius
         imageView.layer.masksToBounds = true
         return imageView

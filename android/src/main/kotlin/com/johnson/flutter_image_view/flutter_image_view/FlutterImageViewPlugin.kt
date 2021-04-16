@@ -19,7 +19,7 @@ class FlutterImageViewPlugin: FlutterPlugin, MethodCallHandler {
   private lateinit var channel : MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    flutterPluginBinding.platformViewRegistry.registerViewFactory("gif_image_view", AndroidImageViewFactory())
+    flutterPluginBinding.platformViewRegistry.registerViewFactory("native_image_view", AndroidImageViewFactory())
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_image_view")
     channel.setMethodCallHandler(this)
 

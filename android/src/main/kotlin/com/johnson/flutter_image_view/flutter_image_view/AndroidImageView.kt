@@ -21,7 +21,11 @@ class AndroidImageView(context: Context) : PlatformView {
     override fun getView(): View {
         val imageView = ImageView(context)
         imageView.scaleType = ImageView.ScaleType.FIT_XY
-        Glide.with(context).load(imagePath).apply(RequestOptions.bitmapTransform(RoundedCorners(radius))).diskCacheStrategy(DiskCacheStrategy.ALL).transition(DrawableTransitionOptions.withCrossFade(300)).into(imageView)
+        if (radius > 0) {
+            Glide.with(context).load(imagePath).apply(RequestOptions.bitmapTransform(RoundedCorners(radius))).diskCacheStrategy(DiskCacheStrategy.ALL).transition(DrawableTransitionOptions.withCrossFade(300)).into(imageView)
+        }else {
+            Glide.with(context).load(imagePath).diskCacheStrategy(DiskCacheStrategy.ALL).transition(DrawableTransitionOptions.withCrossFade(300)).into(imageView)
+        }
         return imageView
     }
 

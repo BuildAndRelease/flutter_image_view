@@ -33,8 +33,9 @@ class FlutterImageView {
     String placeHolderPath,
     Uint8List placeHolderData,
     num radius,
+    bool ignoreGesture = false,
     PlatformViewHitTestBehavior hitTestBehavior =
-        PlatformViewHitTestBehavior.opaque,
+        PlatformViewHitTestBehavior.transparent,
     Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
     TextDirection layoutDirection,
     PlatformViewCreatedCallback onPlatformViewCreated,
@@ -47,10 +48,11 @@ class FlutterImageView {
       params["placeHolderPath"] = placeHolderPath;
     if (placeHolderData != null) params["placeHolderData"] = placeHolderData;
     if (radius != null) params["radius"] = radius;
+    Widget widget;
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
+      widget = AndroidView(
           key: key,
-          viewType: "gif_image_view",
+          viewType: "native_image_view",
           hitTestBehavior: hitTestBehavior,
           gestureRecognizers: gestureRecognizers,
           layoutDirection: layoutDirection,
@@ -58,9 +60,9 @@ class FlutterImageView {
           creationParams: params,
           creationParamsCodec: const StandardMessageCodec());
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return UiKitView(
+      widget = UiKitView(
           key: key,
-          viewType: "gif_image_view",
+          viewType: "native_image_view",
           hitTestBehavior: hitTestBehavior,
           gestureRecognizers: gestureRecognizers,
           layoutDirection: layoutDirection,
@@ -68,7 +70,8 @@ class FlutterImageView {
           creationParams: params,
           creationParamsCodec: const StandardMessageCodec());
     } else {
-      return const SizedBox();
+      widget = const SizedBox();
     }
+    return ignoreGesture ? AbsorbPointer(child: widget) : widget;
   }
 }
