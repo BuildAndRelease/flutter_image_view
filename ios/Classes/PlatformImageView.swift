@@ -10,7 +10,7 @@ import Foundation
 import Flutter
 import SDWebImage
 
-class PlatformGifImageView: NSObject,FlutterPlatformView {
+class PlatformImageView: NSObject,FlutterPlatformView {
     let frame: CGRect;
     let viewId: Int64;
     var imagePath: String = ""
@@ -34,11 +34,18 @@ class PlatformGifImageView: NSObject,FlutterPlatformView {
     func view() -> UIView {
         let imageView = SDAnimatedImageView(frame: frame)
         imageView.tag = Int(viewId)
-        guard let url = URL(string: imagePath) else {
-            return imageView
-        }
         imageView.sd_imageIndicator = SDWebImageActivityIndicator.gray
-        imageView.sd_setImage(with: url, placeholderImage: nil, options: [.lowPriority, .allowInvalidSSLCertificates, .avoidDecodeImage, .scaleDownLargeImages], completed: nil)
+        imageView.contentMode = .scaleToFill
+        if imageData.count > 0 {
+            imageView.maxBufferSize = 1
+            imageView.image = UIImage(data: imageData)
+        }else {
+            guard let url = (imagePath.starts(with: "/") ? URL(fileURLWithPath: imagePath) : URL(string: imagePath)) else {
+                return imageView
+            }
+            let placeHolderImage = placeholderData.count > 0 ? UIImage(data: placeholderData) : nil
+            imageView.sd_setImage(with: url, placeholderImage: placeHolderImage, options: [.lowPriority, .allowInvalidSSLCertificates, .avoidDecodeImage, .scaleDownLargeImages], completed: nil)
+        }
         imageView.layer.cornerRadius = radius
         imageView.layer.masksToBounds = true
         return imageView

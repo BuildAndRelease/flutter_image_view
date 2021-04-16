@@ -9,9 +9,9 @@
 import Foundation
 import Flutter
 
-class PlatformGifImageViewFactory: NSObject,FlutterPlatformViewFactory {
+class PlatformImageViewFactory: NSObject,FlutterPlatformViewFactory {
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        return PlatformGifImageView(frame,viewID: viewId,args: args)
+        return PlatformImageView(frame,viewID: viewId,args: args)
     }
     
     func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {

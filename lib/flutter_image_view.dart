@@ -32,8 +32,10 @@ class FlutterImageView {
     Uint8List imageData,
     String placeHolderPath,
     Uint8List placeHolderData,
+    double width,
+    double heigth,
     num radius,
-    bool ignoreGesture = false,
+    bool ignoreGesture = true,
     PlatformViewHitTestBehavior hitTestBehavior =
         PlatformViewHitTestBehavior.transparent,
     Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
@@ -72,6 +74,9 @@ class FlutterImageView {
     } else {
       widget = const SizedBox();
     }
-    return ignoreGesture ? AbsorbPointer(child: widget) : widget;
+    widget = ignoreGesture ? AbsorbPointer(child: widget) : widget;
+    return (width != null && heigth != null)
+        ? SizedBox(width: width, height: heigth, child: widget)
+        : widget;
   }
 }
