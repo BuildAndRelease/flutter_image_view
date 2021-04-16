@@ -14,12 +14,12 @@ class AndroidImageViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANC
         val imageData = params?.get("imageData") ?: ByteArray(0)
         val placeHolderPath = params?.get("placeHolderPath") ?: ""
         val placeHolderData = params?.get("placeHolderData") ?: ByteArray(0)
-        val radius = (params?.get("radius") ?: 0f).toString().toFloat()
+        val radius = (params?.get("radius") ?: 0).toString().toInt()
         androidImageView.imagePath = imagePath
         androidImageView.imageData = imageData as ByteArray
         androidImageView.placeholderPath = placeHolderPath as String
         androidImageView.placeholderData = placeHolderData as ByteArray
-        androidImageView.radius = radius.toFloat()
+        androidImageView.radius = radius
         return androidImageView
     }
 }

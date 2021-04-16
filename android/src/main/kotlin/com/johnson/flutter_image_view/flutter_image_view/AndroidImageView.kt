@@ -4,8 +4,9 @@ import android.content.Context
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import io.flutter.plugin.platform.PlatformView
 
@@ -16,15 +17,11 @@ class AndroidImageView(context: Context) : PlatformView {
     var imageData: ByteArray = ByteArray(0);
     var placeholderPath: String = ""
     var placeholderData: ByteArray = ByteArray(0);
-    var radius : Float = 0f
+    var radius : Int = 0
     override fun getView(): View {
         val imageView = ImageView(context)
-        val options = RequestOptions().apply {
-            centerInside()
-            format(DecodeFormat.PREFER_RGB_565)
-            RoundedCorners(radius.toInt())
-        }
-        Glide.with(context).load(imagePath).apply(options).into(imageView)
+        imageView.scaleType = ImageView.ScaleType.FIT_XY
+        Glide.with(context).load(imagePath).apply(RequestOptions.bitmapTransform(RoundedCorners(radius))).diskCacheStrategy(DiskCacheStrategy.ALL).transition(DrawableTransitionOptions.withCrossFade(300)).into(imageView)
         return imageView
     }
 
