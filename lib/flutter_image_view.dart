@@ -33,7 +33,7 @@ class FlutterImageView {
     String placeHolderPath,
     Uint8List placeHolderData,
     double width,
-    double heigth,
+    double height,
     num radius,
     bool ignoreGesture = true,
     PlatformViewHitTestBehavior hitTestBehavior =
@@ -75,8 +75,8 @@ class FlutterImageView {
       widget = const SizedBox();
     }
     widget = ignoreGesture ? AbsorbPointer(child: widget) : widget;
-    return (width != null && heigth != null)
-        ? SizedBox(width: width, height: heigth, child: widget)
+    return (width != null && height != null)
+        ? SizedBox(width: width, height: height, child: widget)
         : widget;
   }
 }
