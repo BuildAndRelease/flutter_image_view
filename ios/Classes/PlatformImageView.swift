@@ -11,8 +11,8 @@ import Flutter
 import SDWebImage
 
 class PlatformImageView: NSObject,FlutterPlatformView {
-    let frame: CGRect;
-    let viewId: Int64;
+    var frame: CGRect;
+    var viewId: Int64;
     var imagePath: String = ""
     var imageData: Data = Data()
     var placeholderPath: String = ""
@@ -28,6 +28,7 @@ class PlatformImageView: NSObject,FlutterPlatformView {
             self.placeholderPath = (dict.value(forKey: "placeHolderPath") as? String) ?? ""
             self.placeholderData = (dict.value(forKey: "placeHolderData") as? Data) ?? Data()
             self.radius = (dict.value(forKey: "radius") as? CGFloat) ?? 0
+            self.frame = CGRect(x: 0, y: 0, width: (dict.value(forKey: "width") as? CGFloat) ?? 0, height: (dict.value(forKey: "height") as? CGFloat) ?? 0)
         }
     }
     

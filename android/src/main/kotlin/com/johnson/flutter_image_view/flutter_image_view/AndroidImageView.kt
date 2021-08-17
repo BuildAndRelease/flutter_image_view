@@ -1,6 +1,7 @@
 package com.taoweiji.flutter.flutter_platform_view
 
 import android.content.Context
+import android.graphics.Rect
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
@@ -12,15 +13,19 @@ import io.flutter.plugin.platform.PlatformView
 
 class AndroidImageView(context: Context) : PlatformView {
     val context : Context = context;
-    var viewId: Int = 0;
-    var imagePath: String = "";
-    var imageData: ByteArray = ByteArray(0);
+    var viewId: Int = 0
+    var height : Float = 0.0F
+    var width : Float = 0.0F
+    var imagePath: String = ""
+    var imageData: ByteArray = ByteArray(0)
     var placeholderPath: String = ""
-    var placeholderData: ByteArray = ByteArray(0);
+    var placeholderData: ByteArray = ByteArray(0)
     var radius : Int = 0
     override fun getView(): View {
         val imageView = ImageView(context)
-        imageView.scaleType = ImageView.ScaleType.FIT_XY
+        imageView.maxHeight = height.toInt()
+        imageView.maxWidth = width.toInt()
+        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
         if (radius > 0) {
             Glide.with(context).load(imagePath).apply(RequestOptions.bitmapTransform(RoundedCorners(radius))).diskCacheStrategy(DiskCacheStrategy.ALL).transition(DrawableTransitionOptions.withCrossFade(300)).into(imageView)
         }else {

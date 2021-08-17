@@ -87,6 +87,7 @@ class _MyAppState extends State<MyApp> {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               child: FlutterImageView.getPlatformImageView(
+                  radius: 10,
                   imagePath:
                       "https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif"),
             )

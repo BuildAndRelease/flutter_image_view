@@ -50,6 +50,8 @@ class FlutterImageView {
       params["placeHolderPath"] = placeHolderPath;
     if (placeHolderData != null) params["placeHolderData"] = placeHolderData;
     if (radius != null) params["radius"] = radius;
+    if (width != null) params["width"] = width;
+    if (height != null) params["height"] = height;
     Widget widget;
     if (defaultTargetPlatform == TargetPlatform.android) {
       widget = AndroidView(

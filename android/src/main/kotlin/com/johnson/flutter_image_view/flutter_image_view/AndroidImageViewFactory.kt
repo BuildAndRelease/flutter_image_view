@@ -1,6 +1,7 @@
 package com.taoweiji.flutter.flutter_platform_view
 
 import android.content.Context
+import android.graphics.Rect
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
@@ -15,6 +16,10 @@ class AndroidImageViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANC
         val placeHolderPath = params?.get("placeHolderPath") ?: ""
         val placeHolderData = params?.get("placeHolderData") ?: ByteArray(0)
         val radius = (params?.get("radius") ?: 0).toString().toInt()
+        val width = (params?.get("width") ?: 0).toString().toFloat()
+        val height = (params?.get("height") ?: 0).toString().toFloat()
+        androidImageView.height = height
+        androidImageView.width = width
         androidImageView.imagePath = imagePath
         androidImageView.imageData = imageData as ByteArray
         androidImageView.placeholderPath = placeHolderPath as String
