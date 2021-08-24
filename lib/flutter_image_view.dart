@@ -11,9 +11,17 @@ class FlutterImageView {
   static const MethodChannel _channel =
       const MethodChannel('flutter_image_view');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  static Future<Map> loadTexture(String url,
+      {String width, String height}) async {
+    final args = {"url": url, "width": width, "height": height};
+    final Map textureInfo = await _channel.invokeMethod('loadTexture', args);
+    return textureInfo;
+  }
+
+  static Future<bool> disposeTexture(String textureId) async {
+    final args = {"textureId": textureId};
+    final result = await _channel.invokeMethod('dispose', args);
+    return result;
   }
 
   /// Creates a widget that displays an image with native view.
