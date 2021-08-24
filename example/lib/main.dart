@@ -39,8 +39,11 @@ class _MyAppState extends State<MyApp> {
     Map platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      // final result1 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif');
+      final result1 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
+          width: 140,
+          height: 156,
+          radius: 8);
       // final result2 = await FlutterImageView.loadTexture(
       //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif');
       // final result3 = await FlutterImageView.loadTexture(
@@ -48,7 +51,7 @@ class _MyAppState extends State<MyApp> {
       // final result4 = await FlutterImageView.loadTexture(
       //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif');
 
-      // _textureId1 = result1['textureId'].toString();
+      _textureId1 = result1['textureId'].toString();
       // _textureId2 = result2['textureId'].toString();
       // _textureId3 = result3['textureId'].toString();
       // _textureId4 = result4['textureId'].toString();

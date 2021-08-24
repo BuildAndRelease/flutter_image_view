@@ -12,8 +12,13 @@ class FlutterImageView {
       const MethodChannel('flutter_image_view');
 
   static Future<Map> loadTexture(String url,
-      {String width, String height}) async {
-    final args = {"url": url, "width": width, "height": height};
+      {int width = 0, int height = 0, int radius = 0}) async {
+    final args = {
+      "url": url,
+      "width": width.toString(),
+      "height": height.toString(),
+      "radius": radius.toString()
+    };
     final Map textureInfo = await _channel.invokeMethod('loadTexture', args);
     return textureInfo;
   }

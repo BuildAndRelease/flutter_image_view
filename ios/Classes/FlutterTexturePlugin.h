@@ -10,7 +10,7 @@
 
 @interface FlutterTexturePlugin : NSObject <FlutterTexture>
 
-- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size callback:(void(^) (void)) callback;
+- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius callback:(void(^) (void)) callback;
 
 - (void)dispose;
 

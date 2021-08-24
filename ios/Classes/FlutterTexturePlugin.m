@@ -60,6 +60,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 @property (nonatomic, strong) CADisplayLink * displayLink;
 @property (nonatomic, strong) NSMutableArray<NSDictionary*> *images;
 @property (nonatomic, assign) int now_index;//当前展示的第几帧
+@property (nonatomic, assign) int radius;//当前展示的圆角
 @property (nonatomic, assign) CGFloat can_show_duration;//下一帧要展示的时间差
 
 @end
@@ -68,12 +69,13 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @implementation FlutterTexturePlugin
 
-- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size callback:(void(^) (void)) callback{
+- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius callback:(void(^) (void)) callback{
     self = [super init];
     if (self){
         _updateBlock = callback;
         self.images = [NSMutableArray array];
         self.screenSize = [[UIScreen mainScreen] bounds].size;
+        self.radius = radius;
         if (size.width != 0 && size.height != 0) self.imageSize = size;
         self.pixelBuffs = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
         if ([imageStr hasPrefix:@"http://"]||[imageStr hasPrefix:@"https://"]) {
@@ -135,6 +137,12 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     uint32_t bitmapInfo = bitmapInfoWithPixelFormatType(kCVPixelFormatType_32BGRA, (bool)hasAlpha);
     CGContextRef context = CGBitmapContextCreate(pxdata, frameWidth, frameHeight, 8, CVPixelBufferGetBytesPerRow(target), rgbColorSpace, bitmapInfo);
     NSParameterAssert(context);
+    
+    CGContextSetInterpolationQuality(context, kCGInterpolationLow);
+    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, frameWidth, frameHeight) cornerRadius: _radius];
+    CGContextAddPath(context, path.CGPath);
+    CGContextClip(context);
+    
     
     CGContextConcatCTM(context, CGAffineTransformIdentity);
     CGContextDrawImage(context, CGRectMake(0, 0, frameWidth, frameHeight), image);

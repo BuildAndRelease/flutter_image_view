@@ -25,9 +25,10 @@ public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
         if let imageStr = arguments?.value(forKey: "url") as? String  {
             let width = (arguments?.value(forKey: "width") as? String ?? "0")
             let height = (arguments?.value(forKey: "height") as? String ?? "0")
+            let radius = (arguments?.value(forKey: "radius") as? String ?? "0")
             weak var weakSelf = self;
             var textureId : Int64 = -1;
-            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: Int(width) ?? 0, height: Int(height) ?? 0)) {
+            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: Int(width) ?? 0, height: Int(height) ?? 0), radius: Int32(radius) ?? 0) {
                 weakSelf?.textures?.textureFrameAvailable(textureId);
             }
             textureId = weakSelf?.textures?.register(render!) ?? -1
