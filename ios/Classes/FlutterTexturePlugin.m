@@ -45,6 +45,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @interface FlutterTexturePlugin() {
     BOOL _pixelBuffDecodeFinish;
+    SDWebImageDownloadToken *_currentToken;
 }
 
 
@@ -88,7 +89,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 }
 
 -(void)dealloc{
-    
+//    [[SDWebImageManager sharedManager] provideImageData:<#(nonnull void *)#> bytesPerRow:<#(size_t)#> origin:<#(size_t)#> :<#(size_t)#> size:<#(size_t)#> :<#(size_t)#> userInfo:<#(nullable id)#>]
 }
 
 - (CVPixelBufferRef)copyPixelBuffer {
@@ -100,8 +101,12 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     [self.displayLink invalidate];
     self.displayLink = nil;
     for (int i = 0; i < CFArrayGetCount(_pixelBuffs); i++) {
-        CVPixelBufferRelease((CVPixelBufferRef)CFArrayGetValueAtIndex(_pixelBuffs, _now_index));
+        CVPixelBufferRelease((CVPixelBufferRef)CFArrayGetValueAtIndex(_pixelBuffs, i));
     }
+    CFArrayRemoveAllValues(_pixelBuffs);
+    CFRelease(_pixelBuffs);
+    [_currentToken cancel];
+    _pixelBuffs = nil;
     _target = nil;
 }
 
@@ -126,7 +131,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
                              nil];
     CVPixelBufferRef target;
     CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, frameWidth, frameHeight, kCVPixelFormatType_32BGRA, (__bridge CFDictionaryRef) options, &target);
-    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+    NSParameterAssert(status == kCVReturnSuccess && target != NULL);
     
     CVPixelBufferLockBaseAddress(target, 0);
     void *pxdata = CVPixelBufferGetBaseAddress(target);
@@ -142,7 +147,6 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, frameWidth, frameHeight) cornerRadius: _radius];
     CGContextAddPath(context, path.CGPath);
     CGContextClip(context);
-    
     
     CGContextConcatCTM(context, CGAffineTransformIdentity);
     CGContextDrawImage(context, CGRectMake(0, 0, frameWidth, frameHeight), image);
@@ -171,12 +175,13 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         [self sd_GIFImagesWithLocalNamed:imageStr];
     } else {
         self.target = [self CVPixelBufferRefFromUiImage:image];
+        CFArrayAppendValue(_pixelBuffs, self.target);
     }
 }
 
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
-    [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+    _currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
         if (!image) return;
         if (weakSelf.imageSize.height != 0 && weakSelf.imageSize.height != 0) {
             
@@ -194,11 +199,14 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
                 }];
                 [weakSelf.images addObject:dic];
             }
-            [weakSelf startGifDisplay];
+            if (_pixelBuffs != nil) [weakSelf startGifDisplay];
         } else {
-            weakSelf.target = [weakSelf CVPixelBufferRefFromUiImage:image];
-            if (weakSelf.updateBlock) {
-                weakSelf.updateBlock();
+            if (_pixelBuffs != nil) {
+                weakSelf.target = [weakSelf CVPixelBufferRefFromUiImage:image];
+                CFArrayAppendValue(_pixelBuffs, weakSelf.target);
+                if (weakSelf.updateBlock) {
+                    weakSelf.updateBlock();
+                }
             }
         }
     }];

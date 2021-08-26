@@ -41,20 +41,29 @@ class _MyAppState extends State<MyApp> {
     try {
       final result1 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
-          width: 140,
-          height: 156,
+          width: 150,
+          height: 150,
           radius: 8);
-      // final result2 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif');
-      // final result3 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif');
-      // final result4 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif');
+      final result2 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif',
+          width: 150,
+          height: 150,
+          radius: 8);
+      final result3 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif',
+          width: 150,
+          height: 150,
+          radius: 8);
+      final result4 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif',
+          width: 150,
+          height: 150,
+          radius: 8);
 
       _textureId1 = result1['textureId'].toString();
-      // _textureId2 = result2['textureId'].toString();
-      // _textureId3 = result3['textureId'].toString();
-      // _textureId4 = result4['textureId'].toString();
+      _textureId2 = result2['textureId'].toString();
+      _textureId3 = result3['textureId'].toString();
+      _textureId4 = result4['textureId'].toString();
       if (mounted) setState(() {});
       // if (!mounted) return;
       // setState(() {
@@ -88,8 +97,8 @@ class _MyAppState extends State<MyApp> {
               // ),
               if (_textureId1.isNotEmpty)
                 Container(
-                  height: 140,
-                  width: 156.5,
+                  height: 150,
+                  width: 150,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(15))),
                   child: int.tryParse(_textureId1) != null
@@ -98,8 +107,8 @@ class _MyAppState extends State<MyApp> {
                 ),
               if (_textureId2.isNotEmpty)
                 Container(
-                  height: 100,
-                  width: 100,
+                  height: 150,
+                  width: 150,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(15))),
                   child: int.tryParse(_textureId2) != null
@@ -108,8 +117,8 @@ class _MyAppState extends State<MyApp> {
                 ),
               if (_textureId3.isNotEmpty)
                 Container(
-                  height: 50,
-                  width: 50,
+                  height: 150,
+                  width: 150,
                   decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.all(Radius.circular(15))),
@@ -119,8 +128,8 @@ class _MyAppState extends State<MyApp> {
                 ),
               if (_textureId4.isNotEmpty)
                 Container(
-                  height: 100,
-                  width: 178,
+                  height: 150,
+                  width: 150,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(15))),
                   child: int.tryParse(_textureId4) != null
