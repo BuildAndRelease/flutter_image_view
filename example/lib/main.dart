@@ -41,28 +41,28 @@ class _MyAppState extends State<MyApp> {
     try {
       final result1 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
-          width: 150,
-          height: 150,
+          width: 178,
+          height: 178,
           radius: 8);
       final result2 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif',
-          width: 150,
-          height: 150,
+          width: 178,
+          height: 178,
           radius: 8);
-      final result3 = await FlutterImageView.loadTexture(
-          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif',
-          width: 150,
-          height: 150,
-          radius: 8);
+      // final result3 = await FlutterImageView.loadTexture(
+      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif',
+      //     width: 178,
+      //     height: 178,
+      //     radius: 8);
       final result4 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif',
-          width: 150,
-          height: 150,
+          width: 178,
+          height: 178,
           radius: 8);
 
       _textureId1 = result1['textureId'].toString();
       _textureId2 = result2['textureId'].toString();
-      _textureId3 = result3['textureId'].toString();
+      // _textureId3 = result3['textureId'].toString();
       _textureId4 = result4['textureId'].toString();
       if (mounted) setState(() {});
       // if (!mounted) return;
@@ -100,7 +100,7 @@ class _MyAppState extends State<MyApp> {
                   height: 150,
                   width: 150,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
                   child: int.tryParse(_textureId1) != null
                       ? Texture(textureId: int.tryParse(_textureId1))
                       : SizedBox(),
@@ -110,7 +110,7 @@ class _MyAppState extends State<MyApp> {
                   height: 150,
                   width: 150,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
                   child: int.tryParse(_textureId2) != null
                       ? Texture(textureId: int.tryParse(_textureId2))
                       : SizedBox(),
@@ -121,7 +121,7 @@ class _MyAppState extends State<MyApp> {
                   width: 150,
                   decoration: BoxDecoration(
                       color: Colors.red,
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
                   child: int.tryParse(_textureId3) != null
                       ? Texture(textureId: int.tryParse(_textureId3))
                       : SizedBox(),
@@ -131,7 +131,7 @@ class _MyAppState extends State<MyApp> {
                   height: 150,
                   width: 150,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
                   child: int.tryParse(_textureId4) != null
                       ? Texture(textureId: int.tryParse(_textureId4))
                       : SizedBox(),

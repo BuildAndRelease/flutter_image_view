@@ -54,7 +54,6 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @property (nonatomic, assign) CGSize imageSize;//图片实际大小 px
 @property (nonatomic, assign) CGSize screenSize;//图片实际大小 px
-@property (nonatomic, assign) Boolean iscopy;
 @property (nonatomic, copy) void(^updateBlock) (void);
 
 //下方是展示gif图相关的
@@ -223,11 +222,11 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (self.can_show_duration<=0) {
         NSMutableDictionary *dic = (NSMutableDictionary *)[self.images objectAtIndex:_now_index];
         if (CFArrayGetCount(_pixelBuffs) > _now_index) {
-            [dic removeObjectForKey:@"image"];
             _target = (CVPixelBufferRef)CFArrayGetValueAtIndex(_pixelBuffs, _now_index);
         }else {
             _target = [self CVPixelBufferRefFromUiImage:[dic objectForKey:@"image"]];
             CFArrayAppendValue(_pixelBuffs, _target);
+            [dic removeObjectForKey:@"image"];
         }
         
         self.updateBlock();
