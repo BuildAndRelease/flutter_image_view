@@ -11,6 +11,7 @@
 #import <Foundation/Foundation.h>
 #import <SDWebImage/SDWebImageDownloader.h>
 #import <SDWebImage/SDWebImageManager.h>
+#import <SDWebImage/SDImageCache.h>
 #import <OpenGLES/EAGL.h>
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
@@ -45,7 +46,6 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @interface FlutterTexturePlugin() {
     BOOL _pixelBuffDecodeFinish;
-    SDWebImageDownloadToken *_currentToken;
 }
 
 
@@ -59,6 +59,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 //下方是展示gif图相关的
 @property (nonatomic, strong) CADisplayLink * displayLink;
 @property (nonatomic, strong) NSMutableArray<NSDictionary*> *images;
+@property (nonatomic, strong) SDWebImageDownloadToken *currentToken;
 @property (nonatomic, assign) int now_index;//当前展示的第几帧
 @property (nonatomic, assign) int radius;//当前展示的圆角
 @property (nonatomic, assign) CGFloat can_show_duration;//下一帧要展示的时间差
@@ -104,7 +105,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     }
     CFArrayRemoveAllValues(_pixelBuffs);
     CFRelease(_pixelBuffs);
-    [_currentToken cancel];
+    if (_currentToken) [_currentToken cancel];
     _pixelBuffs = nil;
     _target = nil;
 }
@@ -180,35 +181,45 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
-    _currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
-        if (!image) return;
-        if (weakSelf.imageSize.height != 0 && weakSelf.imageSize.height != 0) {
-            
-        }else if (image.size.width > weakSelf.screenSize.width || image.size.height > weakSelf.screenSize.height) {
-            CGFloat factor = MAX(image.size.width / weakSelf.screenSize.width, image.size.height / weakSelf.screenSize.height);
-            weakSelf.imageSize = CGSizeMake(image.size.width / factor, image.size.height / factor);
-        }else {
-            weakSelf.imageSize = image.size;
-        }
-        if (image.images.count > 1) {
-            for (UIImage * uiImage in image.images) {
-                NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:@{
-                    @"duration":@(image.duration*1.0/image.images.count),
-                    @"image":uiImage
-                }];
-                [weakSelf.images addObject:dic];
-            }
-            if (_pixelBuffs != nil) [weakSelf startGifDisplay];
+    [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
+        if (data) {
+            [weakSelf loadImage:[[UIImage alloc] initWithData:data]];
         } else {
-            if (_pixelBuffs != nil) {
-                weakSelf.target = [weakSelf CVPixelBufferRefFromUiImage:image];
-                CFArrayAppendValue(_pixelBuffs, weakSelf.target);
-                if (weakSelf.updateBlock) {
-                    weakSelf.updateBlock();
-                }
-            }
+            weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+                if (!image) return;
+                [[SDImageCache sharedImageCache] storeImage:image forKey:imageStr toDisk:YES completion:nil];
+                [weakSelf loadImage:image];
+            }];
         }
     }];
+}
+
+-(void)loadImage:(UIImage *)image {
+    if (_imageSize.height != 0 && _imageSize.height != 0) {
+        
+    }else if (image.size.width > _screenSize.width || image.size.height > _screenSize.height) {
+        CGFloat factor = MAX(image.size.width / _screenSize.width, image.size.height / _screenSize.height);
+        _imageSize = CGSizeMake(image.size.width / factor, image.size.height / factor);
+    }else {
+        _imageSize = image.size;
+    }
+    if (image.images.count > 1) {
+        for (UIImage * uiImage in image.images) {
+            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:@{
+                @"duration":@(image.duration*1.0/image.images.count),
+                @"image":uiImage
+            }];
+            [_images addObject:dic];
+        }
+        if (_pixelBuffs != nil) [self startGifDisplay];
+    } else {
+        if (_pixelBuffs != nil) {
+            _target = [self CVPixelBufferRefFromUiImage:image];
+            CFArrayAppendValue(_pixelBuffs, _target);
+            if (_updateBlock) _updateBlock();
+            
+        }
+    }
 }
 
 -(void)updategif:(CADisplayLink*)displayLink{

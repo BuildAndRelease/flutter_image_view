@@ -87,7 +87,7 @@ class AndroidTextureView(imageUrl : String, placeHolder : String,  errorHolder :
 
             }
         }
-        Glide.with(context).asDrawable().load(this.imageUrl).placeholder(Drawable.createFromPath(this.placeHolder)).error(Drawable.createFromPath(this.errorHolder)).into(target)
+        Glide.with(context).asDrawable().load(this.imageUrl).skipMemoryCache(true).placeholder(Drawable.createFromPath(this.placeHolder)).error(Drawable.createFromPath(this.errorHolder)).into(target)
     }
 
     fun dispose() {
