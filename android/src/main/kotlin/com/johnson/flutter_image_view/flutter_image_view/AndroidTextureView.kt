@@ -1,9 +1,7 @@
 package com.johnson.flutter_image_view.flutter_image_view
 
 import android.content.Context
-import android.graphics.Path
-import android.graphics.Rect
-import android.graphics.RectF
+import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.view.Surface
 import com.bumptech.glide.Glide
@@ -105,6 +103,7 @@ class AndroidTextureView(imageUrl : String, placeHolder : String,  errorHolder :
         if (surface.isValid) {
             val canvas = surface.lockCanvas(canvasRect)
             canvas.clipPath(radiusPath)
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             who.draw(canvas)
             surface.unlockCanvasAndPost(canvas)
         }else {

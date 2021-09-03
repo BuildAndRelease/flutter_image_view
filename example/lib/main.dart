@@ -36,7 +36,6 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    Map platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       final result1 = await FlutterImageView.loadTexture(
@@ -45,12 +44,12 @@ class _MyAppState extends State<MyApp> {
           height: 178,
           radius: 8);
       final result2 = await FlutterImageView.loadTexture(
-          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif',
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/e7ce605b02e407c1071f4f74c45ae471.jpg',
           width: 178,
           height: 178,
           radius: 8);
       final result3 = await FlutterImageView.loadTexture(
-          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f8232500106303e7c1767eb8286fc814.gif',
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/24c716386806f3fc4964e26f3ae42363.gif',
           width: 178,
           height: 178,
           radius: 8);
@@ -81,6 +80,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+          backgroundColor: Colors.green,
           appBar: AppBar(
             title: const Text('Plugin example app'),
           ),

@@ -12,6 +12,8 @@
 #import <SDWebImage/SDWebImageDownloader.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <SDWebImage/SDImageCache.h>
+#import <SDWebImage/UIImage+MultiFormat.h>
+#import <SDWebImage/UIImage+GIF.h>
 #import <OpenGLES/EAGL.h>
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
@@ -181,13 +183,14 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
+    
     [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
         if (data) {
-            [weakSelf loadImage:[[UIImage alloc] initWithData:data]];
+            [weakSelf loadImage:[UIImage sd_imageWithGIFData:data]];
         } else {
             weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
                 if (!image) return;
-                [[SDImageCache sharedImageCache] storeImage:image forKey:imageStr toDisk:YES completion:nil];
+                [[SDImageCache sharedImageCache] storeImage:image imageData:data forKey:imageStr cacheType:SDImageCacheTypeDisk completion:nil];
                 [weakSelf loadImage:image];
             }];
         }
