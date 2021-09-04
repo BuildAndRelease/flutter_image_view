@@ -8,7 +8,6 @@ import android.os.Looper
 import android.view.Surface
 import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.CustomTarget
@@ -120,7 +119,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         }
 
         Glide.get(context).registry.prepend(GlideUrl::class.java, InputStream::class.java, OkHttpUrlLoader.Factory(mOkHttpClient))
-        Glide.with(context).asDrawable().load(this.imageUrl).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).into(target)
+        Glide.with(context).asDrawable().load(this.imageUrl).skipMemoryCache(true).into(target)
     }
 
     fun dispose() {
