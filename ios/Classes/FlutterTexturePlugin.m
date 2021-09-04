@@ -56,7 +56,8 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @property (nonatomic, assign) CGSize imageSize;//图片实际大小 px
 @property (nonatomic, assign) CGSize screenSize;//图片实际大小 px
-@property (nonatomic, copy) void(^updateBlock) (void);
+@property (nonatomic, copy) void(^updateBlock) (TEXTURECALLBACKTYPE, NSDictionary*);
+@property (nonatomic, copy) NSString * requestId;
 
 //下方是展示gif图相关的
 @property (nonatomic, strong) CADisplayLink * displayLink;
@@ -72,10 +73,11 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 @implementation FlutterTexturePlugin
 
-- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius callback:(void(^) (void)) callback{
+- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius requestId:(NSString *)requestId callback:(void(^) (TEXTURECALLBACKTYPE, NSDictionary*)) callback{
     self = [super init];
     if (self){
         _updateBlock = callback;
+        _requestId = requestId;
         self.images = [NSMutableArray array];
         self.screenSize = [[UIScreen mainScreen] bounds].size;
         self.radius = radius;
@@ -183,15 +185,22 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
-    
     [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
         if (data) {
             [weakSelf loadImage:[UIImage sd_imageWithGIFData:data]];
+            weakSelf.updateBlock(ONDONE, @{@"requestId": weakSelf.requestId});
         } else {
-            weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+            weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] options:0 context:nil progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+                weakSelf.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": weakSelf.requestId});
+            } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+                if (error) {
+                    weakSelf.updateBlock(ONERROR, @{@"error": [error description], @"requestId": weakSelf.requestId});
+                    return;
+                }
                 if (!image) return;
                 [[SDImageCache sharedImageCache] storeImage:image imageData:data forKey:imageStr cacheType:SDImageCacheTypeDisk completion:nil];
                 [weakSelf loadImage:image];
+                weakSelf.updateBlock(ONDONE, @{@"requestId": weakSelf.requestId});
             }];
         }
     }];
@@ -219,7 +228,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         if (_pixelBuffs != nil) {
             _target = [self CVPixelBufferRefFromUiImage:image];
             CFArrayAppendValue(_pixelBuffs, _target);
-            if (_updateBlock) _updateBlock();
+            if (_updateBlock) _updateBlock(UPDATETEXTURE, @{});
             
         }
     }
@@ -243,7 +252,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
             [dic removeObjectForKey:@"image"];
         }
         
-        self.updateBlock();
+        self.updateBlock(UPDATETEXTURE, @{});
         
         _now_index += 1;
         if (_now_index >= self.images.count) {

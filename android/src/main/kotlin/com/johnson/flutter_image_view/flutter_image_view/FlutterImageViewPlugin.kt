@@ -38,12 +38,11 @@ class FlutterImageViewPlugin: FlutterPlugin, MethodCallHandler {
       val width = call.argument<String>("width") ?: ""
       val heigth = call.argument<String>("height") ?: ""
       val radius = call.argument<String>("radius") ?: ""
-      val errorHolder = call.argument<String>("error") ?: ""
-      val placeHolder = call.argument<String>("place") ?: ""
+      val requestId = call.argument<String>("requestId") ?: ""
       val entry = texture.createSurfaceTexture()
-      val render = AndroidTextureView(imageUrl, placeHolder, errorHolder, width, heigth, radius, context, entry)
+      val render = AndroidTextureView(imageUrl, requestId, width, heigth, radius, context, channel, entry)
       renders[entry.id().toString()] = render
-      result.success(mapOf("textureId" to entry.id().toString()));
+      result.success(mapOf("textureId" to entry.id().toString(), "requestId" to requestId));
     } else if (call.method == "dispose") {
       val textureId = call.argument<String>("textureId") ?: ""
       val render = renders.remove(textureId)

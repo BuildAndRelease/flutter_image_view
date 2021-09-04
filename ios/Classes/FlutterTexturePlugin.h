@@ -8,9 +8,16 @@
 #import <Foundation/Foundation.h>
 #import <Flutter/Flutter.h>
 
+typedef enum {
+    UPDATETEXTURE = 0,
+    ONPROGRESS = 1,
+    ONERROR = 2,
+    ONDONE = 3,
+}TEXTURECALLBACKTYPE;
+
 @interface FlutterTexturePlugin : NSObject <FlutterTexture>
 
-- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius callback:(void(^) (void)) callback;
+- (instancetype)initWithImageStr:(NSString*)imageStr imageSize:(CGSize)size radius:(int)radius requestId:(NSString *)requestId callback:(void(^) (TEXTURECALLBACKTYPE, NSDictionary*)) callback;
 
 - (void)dispose;
 

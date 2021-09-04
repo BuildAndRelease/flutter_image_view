@@ -5,6 +5,7 @@ import SDWebImage
 public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
     var textures : FlutterTextureRegistry?
     var renders = NSMutableDictionary()
+    var channel : FlutterMethodChannel?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
       let channel = FlutterMethodChannel(name: "flutter_image_view", binaryMessenger: registrar.messenger())
@@ -13,7 +14,7 @@ public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
       registrar.register(factory, withId: "native_image_view")
       
       let instance = SwiftFlutterImageViewPlugin()
-      
+        instance.channel = channel
       instance.textures = registrar.textures()
       registrar.addMethodCallDelegate(instance, channel: channel)
     }
@@ -26,15 +27,32 @@ public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
             let width = (arguments?.value(forKey: "width") as? String ?? "0")
             let height = (arguments?.value(forKey: "height") as? String ?? "0")
             let radius = (arguments?.value(forKey: "radius") as? String ?? "0")
+            let requestId = (arguments?.value(forKey: "requestId") as? String ?? "")
             weak var weakSelf = self;
             var textureId : Int64 = -1;
-            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: Int(width) ?? 0, height: Int(height) ?? 0), radius: Int32(radius) ?? 0) {
-                weakSelf?.textures?.textureFrameAvailable(textureId);
+            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: Int(width) ?? 0, height: Int(height) ?? 0), radius: Int32(radius) ?? 0, requestId: requestId) { (type, param) in
+                switch (type) {
+                case UPDATETEXTURE:
+                    weakSelf?.textures?.textureFrameAvailable(textureId);
+                    break;
+                case ONPROGRESS:
+                    weakSelf?.channel?.invokeMethod("onProgress", arguments: param)
+                    break;
+                case ONERROR:
+                    weakSelf?.channel?.invokeMethod("onError", arguments: param)
+                    break;
+                case ONDONE:
+                    weakSelf?.channel?.invokeMethod("onDone", arguments: param)
+                    break
+                default:
+                    break;
+                }
             }
             textureId = weakSelf?.textures?.register(render!) ?? -1
             weakSelf?.renders.setValue(render, forKey: "\(textureId)")
             let dictionary = NSMutableDictionary()
             dictionary.setValue("\(textureId)", forKey: "textureId")
+            dictionary.setValue("\(requestId)", forKey: "requestId")
             result(dictionary)
             return
             }

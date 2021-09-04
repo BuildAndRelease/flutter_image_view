@@ -6,24 +6,76 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
+
+typedef ImageViewProgressCallBack = void Function(double progress);
+typedef ImageViewErrorCallBack = void Function(String error);
+typedef ImageViewDoneCallBack = void Function();
 
 class FlutterImageView {
   static const MethodChannel _channel =
       const MethodChannel('flutter_image_view');
+  static Map<String, ImageViewProgressCallBack> progressCallBackMap = {};
+  static Map<String, ImageViewErrorCallBack> errorCallBackMap = {};
+  static Map<String, ImageViewDoneCallBack> doneCallBackMap = {};
+  static final uuid = Uuid();
 
-  static Future<Map> loadTexture(String url,
-      {int width = 0, int height = 0, int radius = 0}) async {
+  static void init() {
+    _channel.setMethodCallHandler((call) async {
+      final requestId = call.arguments['requestId'].toString() ?? "";
+      if (requestId.isEmpty) return true;
+      switch (call.method) {
+        case "onProgress":
+          final progress =
+              double.tryParse(call.arguments["progress"].toString());
+          final progressFunction = progressCallBackMap[requestId];
+          if (progressFunction != null) progressFunction(progress);
+          break;
+        case "onError":
+          final error = call.arguments["error"].toString();
+          final errorFunction = errorCallBackMap[requestId];
+          if (errorFunction != null) errorFunction(error);
+          break;
+        case "onDone":
+          final doneFunction = doneCallBackMap[requestId];
+          if (doneFunction != null) doneFunction();
+          break;
+        default:
+          break;
+      }
+      return true;
+    });
+  }
+
+  static Future<Map> loadTexture(
+    String url, {
+    int width = 0,
+    int height = 0,
+    int radius = 0,
+    ImageViewProgressCallBack progressCallBack,
+    ImageViewErrorCallBack errorCallBack,
+    ImageViewDoneCallBack doneCallBack,
+  }) async {
+    final requestId = uuid.v4();
     final args = {
       "url": url,
       "width": width.toString(),
       "height": height.toString(),
-      "radius": radius.toString()
+      "radius": radius.toString(),
+      "requestId": requestId,
     };
+    if (progressCallBack != null)
+      progressCallBackMap[requestId] = progressCallBack;
+    if (errorCallBack != null) errorCallBackMap[requestId] = errorCallBack;
+    if (doneCallBack != null) doneCallBackMap[requestId] = doneCallBack;
     final Map textureInfo = await _channel.invokeMethod('loadTexture', args);
     return textureInfo;
   }
 
-  static Future<bool> disposeTexture(String textureId) async {
+  static Future<bool> disposeTexture(String textureId, String reqeustId) async {
+    progressCallBackMap.remove(reqeustId);
+    errorCallBackMap.remove(reqeustId);
+    doneCallBackMap.remove(reqeustId);
     final args = {"textureId": textureId};
     final result = await _channel.invokeMethod('dispose', args);
     return result;

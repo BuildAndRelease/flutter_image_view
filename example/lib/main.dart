@@ -19,18 +19,24 @@ class _MyAppState extends State<MyApp> {
   String _textureId3 = '';
   String _textureId4 = '';
 
+  String _requestId1 = '';
+  String _requestId2 = '';
+  String _requestId3 = '';
+  String _requestId4 = '';
+
   @override
   void initState() {
     super.initState();
+    FlutterImageView.init();
     initPlatformState();
   }
 
   @override
   void dispose() {
-    FlutterImageView.disposeTexture(_textureId1);
-    FlutterImageView.disposeTexture(_textureId2);
-    FlutterImageView.disposeTexture(_textureId3);
-    FlutterImageView.disposeTexture(_textureId4);
+    FlutterImageView.disposeTexture(_textureId1, _requestId1);
+    FlutterImageView.disposeTexture(_textureId2, _requestId2);
+    FlutterImageView.disposeTexture(_textureId3, _requestId3);
+    FlutterImageView.disposeTexture(_textureId4, _requestId4);
     super.dispose();
   }
 
@@ -42,7 +48,13 @@ class _MyAppState extends State<MyApp> {
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
           width: 178,
           height: 178,
-          radius: 8);
+          radius: 8, progressCallBack: (progress) {
+        print(progress);
+      }, errorCallBack: (error) {
+        print(error);
+      }, doneCallBack: () {
+        print('done');
+      });
       final result2 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/e7ce605b02e407c1071f4f74c45ae471.jpg',
           width: 178,
@@ -60,9 +72,16 @@ class _MyAppState extends State<MyApp> {
           radius: 8);
 
       _textureId1 = result1['textureId'].toString();
+      _requestId1 = result1['requestId'].toString();
+
       _textureId2 = result2['textureId'].toString();
+      _requestId2 = result2['requestId'].toString();
+
       _textureId3 = result3['textureId'].toString();
+      _requestId3 = result3['requestId'].toString();
+
       _textureId4 = result4['textureId'].toString();
+      _requestId4 = result4['requestId'].toString();
       if (mounted) setState(() {});
       // if (!mounted) return;
       // setState(() {
@@ -151,9 +170,9 @@ class _MyAppState extends State<MyApp> {
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      FlutterImageView.disposeTexture(_textureId2);
-                      FlutterImageView.disposeTexture(_textureId3);
-                      FlutterImageView.disposeTexture(_textureId4);
+                      FlutterImageView.disposeTexture(_textureId2, _requestId2);
+                      FlutterImageView.disposeTexture(_textureId3, _requestId3);
+                      FlutterImageView.disposeTexture(_textureId4, _requestId4);
                       _textureId2 = '';
                       _textureId3 = '';
                       _textureId4 = '';
