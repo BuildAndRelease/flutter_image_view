@@ -12,6 +12,8 @@ typedef ImageViewProgressCallBack = void Function(double progress);
 typedef ImageViewErrorCallBack = void Function(String error);
 typedef ImageViewDoneCallBack = void Function();
 
+enum FlutterImageViewStatus { loading, progress, error, done }
+
 class FlutterImageView {
   static const MethodChannel _channel =
       const MethodChannel('flutter_image_view');

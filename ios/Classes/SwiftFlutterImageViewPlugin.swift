@@ -24,13 +24,14 @@ public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
       switch call.method {
       case "loadTexture":
         if let imageStr = arguments?.value(forKey: "url") as? String  {
-            let width = (arguments?.value(forKey: "width") as? String ?? "0")
-            let height = (arguments?.value(forKey: "height") as? String ?? "0")
-            let radius = (arguments?.value(forKey: "radius") as? String ?? "0")
+            let width = max(1, min(Int(arguments?.value(forKey: "width") as? String ?? "50") ?? 50, 250))
+            let height = max(1, min(Int(arguments?.value(forKey: "height") as? String ?? "50") ?? 50, 250))
+            let radius = Int32(arguments?.value(forKey: "radius") as? String ?? "0") ?? 0
             let requestId = (arguments?.value(forKey: "requestId") as? String ?? "")
             weak var weakSelf = self;
             var textureId : Int64 = -1;
-            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: Int(width) ?? 0, height: Int(height) ?? 0), radius: Int32(radius) ?? 0, requestId: requestId) { (type, param) in
+            
+            let render = FlutterTexturePlugin(imageStr: imageStr, imageSize: CGSize(width: width, height: height), radius: radius, requestId: requestId) { (type, param) in
                 switch (type) {
                 case UPDATETEXTURE:
                     weakSelf?.textures?.textureFrameAvailable(textureId);

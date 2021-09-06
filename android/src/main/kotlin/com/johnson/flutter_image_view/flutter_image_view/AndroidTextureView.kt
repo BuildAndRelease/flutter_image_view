@@ -2,6 +2,7 @@ package com.johnson.flutter_image_view.flutter_image_view
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
@@ -50,6 +51,9 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         radiusPath.addRoundRect(rectF, this.radius.toFloat(), this.radius.toFloat(), Path.Direction.CW)
         this.surfaceEntry.surfaceTexture().setDefaultBufferSize(this.width, this.height)
         surface = Surface(this.surfaceEntry.surfaceTexture())
+        val canvas = surface.lockCanvas(canvasRect)
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        surface.unlockCanvasAndPost(canvas)
 
         progressListener = object : ProgressListener {
             override fun update(bytesRead: Long, contentLength: Long, done: Boolean) {
@@ -87,16 +91,11 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
                 try {
                     weakSelf.get()?.drawable = resource
                     if (resource is GifDrawable) {
-                        val canvas = weakSelf.get()?.surface?.lockCanvas(canvasRect)
-                        weakSelf.get()?.radiusPath?.let { canvas?.clipPath(it) }
-                        canvas?.let { resource.draw(it) }
-                        weakSelf.get()?.surface?.unlockCanvasAndPost(canvas)
                         weakSelf.get()?.canvasRect?.let { resource.setBounds(it) }
                         resource.start()
                         resource.callback = this@AndroidTextureView
                     } else  {
                         val canvas = weakSelf.get()?.surface?.lockCanvas(weakSelf.get()?.canvasRect)
-                        canvas?.save()
                         weakSelf.get()?.radiusPath?.let { canvas?.clipPath(it) }
                         resource?.bounds = canvasRect
                         if (canvas != null)
@@ -124,9 +123,12 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
 
     fun dispose() {
         context.get()?.let { Glide.with(it).clear(target) }
-        (drawable as? GifDrawable)?.recycle()
         surface.release()
         surfaceEntry.release()
+        if (drawable != null && drawable is GifDrawable) {
+            (drawable as GifDrawable).stop()
+        }
+        drawable.callback = null
     }
 
     override fun unscheduleDrawable(who: Drawable, what: Runnable) {

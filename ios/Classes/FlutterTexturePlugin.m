@@ -46,12 +46,9 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     return hasAlpha;
 }
 
-@interface FlutterTexturePlugin() {
-    BOOL _pixelBuffDecodeFinish;
-}
+@interface FlutterTexturePlugin()
 
 
-@property (nonatomic) CFMutableArrayRef pixelBuffs;
 @property (nonatomic) CVPixelBufferRef target;
 
 @property (nonatomic, assign) CGSize imageSize;//图片实际大小 px
@@ -61,8 +58,9 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 //下方是展示gif图相关的
 @property (nonatomic, strong) CADisplayLink * displayLink;
-@property (nonatomic, strong) NSMutableArray<NSDictionary*> *images;
+@property (nonatomic, strong) UIImage *image;
 @property (nonatomic, strong) SDWebImageDownloadToken *currentToken;
+@property (nonatomic, assign) CGFloat frameDuration;//帧率
 @property (nonatomic, assign) int now_index;//当前展示的第几帧
 @property (nonatomic, assign) int radius;//当前展示的圆角
 @property (nonatomic, assign) CGFloat can_show_duration;//下一帧要展示的时间差
@@ -78,11 +76,9 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (self){
         _updateBlock = callback;
         _requestId = requestId;
-        self.images = [NSMutableArray array];
         self.screenSize = [[UIScreen mainScreen] bounds].size;
         self.radius = radius;
         if (size.width != 0 && size.height != 0) self.imageSize = size;
-        self.pixelBuffs = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
         if ([imageStr hasPrefix:@"http://"]||[imageStr hasPrefix:@"https://"]) {
             [self loadImageWithStrFromWeb:imageStr];
         } else {
@@ -92,35 +88,31 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     return self;
 }
 
--(void)dealloc{
-//    [[SDWebImageManager sharedManager] provideImageData:<#(nonnull void *)#> bytesPerRow:<#(size_t)#> origin:<#(size_t)#> :<#(size_t)#> size:<#(size_t)#> :<#(size_t)#> userInfo:<#(nullable id)#>]
-}
-
 - (CVPixelBufferRef)copyPixelBuffer {
-    return (_target && _pixelBuffDecodeFinish) ? CVPixelBufferRetain(_target) : nil;
+    if ([_image images]) {
+        CVPixelBufferRelease(_target);
+        _target = [self CVPixelBufferRefFromUiImage:[[_image images] objectAtIndex:_now_index]];
+        return CVPixelBufferRetain(_target);
+    }else if (_target) {
+        return CVPixelBufferRetain(_target);
+    }else {
+        return  nil;
+    }
 }
 
 -(void)dispose{
     self.displayLink.paused = YES;
     [self.displayLink invalidate];
     self.displayLink = nil;
-    for (int i = 0; i < CFArrayGetCount(_pixelBuffs); i++) {
-        CVPixelBufferRelease((CVPixelBufferRef)CFArrayGetValueAtIndex(_pixelBuffs, i));
-    }
-    CFArrayRemoveAllValues(_pixelBuffs);
-    CFRelease(_pixelBuffs);
     if (_currentToken) [_currentToken cancel];
-    _pixelBuffs = nil;
+    if (_target) CVPixelBufferRelease(_target);
     _target = nil;
 }
 
 // 此方法能还原真实的图片
 - (CVPixelBufferRef)CVPixelBufferRefFromUiImage:(UIImage *)img {
-    _pixelBuffDecodeFinish = NO;
-    if (!img) {
-        _pixelBuffDecodeFinish = YES;
-        return nil;
-    }
+    if (!img) return nil;
+    
     CGImageRef image = [img CGImage];
     CGFloat frameWidth = _imageSize.width;
     CGFloat frameHeight = _imageSize.height;
@@ -147,10 +139,13 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     CGContextRef context = CGBitmapContextCreate(pxdata, frameWidth, frameHeight, 8, CVPixelBufferGetBytesPerRow(target), rgbColorSpace, bitmapInfo);
     NSParameterAssert(context);
     
-    CGContextSetInterpolationQuality(context, kCGInterpolationLow);
-    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, frameWidth, frameHeight) cornerRadius: _radius];
-    CGContextAddPath(context, path.CGPath);
-    CGContextClip(context);
+    if (_radius > 0){
+        CGContextSetInterpolationQuality(context, kCGInterpolationLow);
+        UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, frameWidth, frameHeight) cornerRadius: _radius];
+        CGContextAddPath(context, path.CGPath);
+        CGContextClip(context);
+        [path closePath];
+    }
     
     CGContextConcatCTM(context, CGAffineTransformIdentity);
     CGContextDrawImage(context, CGRectMake(0, 0, frameWidth, frameHeight), image);
@@ -158,31 +153,10 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     CGColorSpaceRelease(rgbColorSpace);
     CGContextRelease(context);
     CVPixelBufferUnlockBaseAddress(target, 0);
-    _pixelBuffDecodeFinish = YES;
     return target;
 }
 
 #pragma mark - image
--(void)loadImageWithStrForLocal:(NSString*)imageStr{
-    UIImage *image = [UIImage imageNamed:imageStr];
-    if (!image) return;
-    if (self.imageSize.height != 0 && self.imageSize.height != 0) {
-        
-    }else if (image.size.width > self.screenSize.width || image.size.height > self.screenSize.height) {
-        CGFloat factor = MAX(image.size.width / self.screenSize.width, image.size.height / self.screenSize.height);
-        self.imageSize = CGSizeMake(image.size.width / factor, image.size.height / factor);
-    }else {
-        self.imageSize = image.size;
-    }
-    if (image.images.count > 1) {
-        self.images = [NSMutableArray array];
-        [self sd_GIFImagesWithLocalNamed:imageStr];
-    } else {
-        self.target = [self CVPixelBufferRefFromUiImage:image];
-        CFArrayAppendValue(_pixelBuffs, self.target);
-    }
-}
-
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
     [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
@@ -206,6 +180,20 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     }];
 }
 
+-(void)loadImageWithStrForLocal:(NSString*)imageStr{
+    UIImage *image = [UIImage imageNamed:imageStr];
+    if (image) {
+        [self loadImage:image];
+        return;
+    }
+    image = [UIImage imageWithContentsOfFile:imageStr];
+    if (image) {
+        [self loadImage:image];
+        return;
+    }
+    
+}
+
 -(void)loadImage:(UIImage *)image {
     if (_imageSize.height != 0 && _imageSize.height != 0) {
         
@@ -216,141 +204,27 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         _imageSize = image.size;
     }
     if (image.images.count > 1) {
-        for (UIImage * uiImage in image.images) {
-            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:@{
-                @"duration":@(image.duration*1.0/image.images.count),
-                @"image":uiImage
-            }];
-            [_images addObject:dic];
-        }
-        if (_pixelBuffs != nil) [self startGifDisplay];
+        _frameDuration = image.duration*1.0/image.images.count;
+        _image = image;
+        [self startGifDisplay];
     } else {
-        if (_pixelBuffs != nil) {
-            _target = [self CVPixelBufferRefFromUiImage:image];
-            CFArrayAppendValue(_pixelBuffs, _target);
-            if (_updateBlock) _updateBlock(UPDATETEXTURE, @{});
-            
-        }
-    }
-}
-
--(void)updategif:(CADisplayLink*)displayLink{
-    if (self.images.count==0) {
-        self.displayLink.paused = YES;
-        [self.displayLink invalidate];
-        self.displayLink = nil;
-        return;
-    }
-    self.can_show_duration -=displayLink.duration;
-    if (self.can_show_duration<=0) {
-        NSMutableDictionary *dic = (NSMutableDictionary *)[self.images objectAtIndex:_now_index];
-        if (CFArrayGetCount(_pixelBuffs) > _now_index) {
-            _target = (CVPixelBufferRef)CFArrayGetValueAtIndex(_pixelBuffs, _now_index);
-        }else {
-            _target = [self CVPixelBufferRefFromUiImage:[dic objectForKey:@"image"]];
-            CFArrayAppendValue(_pixelBuffs, _target);
-            [dic removeObjectForKey:@"image"];
-        }
-        
-        self.updateBlock(UPDATETEXTURE, @{});
-        
-        _now_index += 1;
-        if (_now_index >= self.images.count) {
-            _now_index = 0;
-        }
-        self.can_show_duration = ((NSNumber*)[dic objectForKey:@"duration"]).floatValue;
+        _target = [self CVPixelBufferRefFromUiImage:image];
+        if (_updateBlock) _updateBlock(UPDATETEXTURE, @{});
     }
 }
 
 - (void)startGifDisplay {
     self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updategif:)];
-    if (@available(iOS 10.0, *)) {
-        self.displayLink.preferredFramesPerSecond = 40;
-    }
     [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
 }
 
-- (void)sd_GifImagesWithLocalData:(NSData *)data {
-    if (!data) {
-        return;
-    }
-    
-    CGImageSourceRef source = CGImageSourceCreateWithData((__bridge CFDataRef)data, NULL);
-    size_t count = CGImageSourceGetCount(source);
-    UIImage *animatedImage;
-    
-    if (count <= 1) {
-        animatedImage = [[UIImage alloc] initWithData:data];
-    } else {
-        for (size_t i = 0; i < count; i++) {
-            CGImageRef image = CGImageSourceCreateImageAtIndex(source, i, NULL);
-            if (!image) continue;
-            
-            UIImage *uiImage = [UIImage imageWithCGImage:image scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
-            NSDictionary *dic = @{
-                @"duration":@([self sd_frameDurationAtIndex:i source:source]),
-                @"image":uiImage
-            };
-            [_images addObject:dic];
-            CGImageRelease(image);
-        }
-    }
-    CFRelease(source);
-    [self startGifDisplay];
-}
-
-- (float)sd_frameDurationAtIndex:(NSUInteger)index source:(CGImageSourceRef)source {
-    float frameDuration = 0.1f;
-    CFDictionaryRef cfFrameProperties = CGImageSourceCopyPropertiesAtIndex(source, index, nil);
-    NSDictionary *frameProperties = (__bridge NSDictionary *)cfFrameProperties;
-    NSDictionary *gifProperties = frameProperties[(NSString *)kCGImagePropertyGIFDictionary];
-    
-    NSNumber *delayTimeUnclampedProp = gifProperties[(NSString *)kCGImagePropertyGIFUnclampedDelayTime];
-    if (delayTimeUnclampedProp) {
-        frameDuration = [delayTimeUnclampedProp floatValue];
-    }else {
-        NSNumber *delayTimeProp = gifProperties[(NSString *)kCGImagePropertyGIFDelayTime];
-        if (delayTimeProp) {
-            frameDuration = [delayTimeProp floatValue];
-        }
-    }
-    
-    if (frameDuration < 0.011f) {
-        frameDuration = 0.100f;
-    }
-    
-    CFRelease(cfFrameProperties);
-    return frameDuration;
-}
-
-- (void)sd_GIFImagesWithLocalNamed:(NSString *)name {
-    if ([name hasSuffix:@".gif"]) {
-        name = [name stringByReplacingCharactersInRange:NSMakeRange(name.length-4, 4) withString:@""];
-    }
-    CGFloat scale = [UIScreen mainScreen].scale;
-    
-    if (scale > 1.0f) {
-        NSData *data = nil;
-        if (scale>2.0f) {
-            NSString *retinaPath = [[NSBundle mainBundle] pathForResource:[name stringByAppendingString:@"@3x"] ofType:@"gif"];
-            data = [NSData dataWithContentsOfFile:retinaPath];
-        }
-        if (!data){
-            NSString *retinaPath = [[NSBundle mainBundle] pathForResource:[name stringByAppendingString:@"@2x"] ofType:@"gif"];
-            data = [NSData dataWithContentsOfFile:retinaPath];
-        }
-        
-        if (!data) {
-            NSString *path = [[NSBundle mainBundle] pathForResource:name ofType:@"gif"];
-            data = [NSData dataWithContentsOfFile:path];
-        }
-        
-        if (data) [self sd_GifImagesWithLocalData:data];
-        
-    }else {
-        NSString *path = [[NSBundle mainBundle] pathForResource:name ofType:@"gif"];
-        NSData *data = [NSData dataWithContentsOfFile:path];
-        if (data) [self sd_GifImagesWithLocalData:data];
+-(void)updategif:(CADisplayLink*)displayLink{
+    self.can_show_duration -=displayLink.duration;
+    if (self.can_show_duration<=0) {
+        _now_index += 1;
+        if (_now_index >= [[_image images] count]) _now_index = 0;
+        self.can_show_duration = _frameDuration;
+        self.updateBlock(UPDATETEXTURE, @{});
     }
 }
 
