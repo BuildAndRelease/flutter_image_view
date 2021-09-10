@@ -195,10 +195,13 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 #pragma mark - image
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
+    _updateBlock(ONPROGRESS, @{@"progress": @"0.0", @"requestId": _requestId});
     __weak typeof(FlutterTexturePlugin*) weakSelf = self;
     [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
         if (data) {
+            weakSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.1", @"requestId": weakSelf.requestId});
             [weakSelf loadImage:[UIImage sd_imageWithGIFData:data]];
+            weakSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.9", @"requestId": weakSelf.requestId});
             weakSelf.updateBlock(ONDONE, @{@"requestId": weakSelf.requestId});
         } else {
             weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] options:0 context:nil progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
@@ -218,14 +221,19 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 }
 
 -(void)loadImageWithStrForLocal:(NSString*)imageStr{
+    _updateBlock(ONPROGRESS, @{@"progress": @"0.0", @"requestId": _requestId});
     UIImage *image = [UIImage imageNamed:imageStr];
     if (image) {
         [self loadImage:image];
+        _updateBlock(ONPROGRESS, @{@"progress": @"0.9", @"requestId": _requestId});
+        _updateBlock(ONDONE, @{@"requestId": _requestId});
         return;
     }
     image = [UIImage imageWithContentsOfFile:imageStr];
     if (image) {
         [self loadImage:image];
+        _updateBlock(ONPROGRESS, @{@"progress": @"0.9", @"requestId": _requestId});
+        _updateBlock(ONDONE, @{@"requestId": _requestId});
         return;
     }
     
