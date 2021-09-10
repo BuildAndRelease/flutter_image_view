@@ -18,6 +18,9 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 
+static int standardFramePerSecond = 30;
+static bool isReceiveMemoryWarning = NO;
+
 static uint32_t bitmapInfoWithPixelFormatType(OSType inputPixelFormat, bool hasAlpha){
     if (inputPixelFormat == kCVPixelFormatType_32BGRA) {
         uint32_t bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host;
@@ -58,12 +61,16 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 
 //下方是展示gif图相关的
 @property (nonatomic, strong) CADisplayLink * displayLink;
-@property (nonatomic, strong) UIImage *image;
+@property (nonatomic, strong) NSArray *images;
 @property (nonatomic, strong) SDWebImageDownloadToken *currentToken;
 @property (nonatomic, assign) CGFloat frameDuration;//帧率
-@property (nonatomic, assign) int now_index;//当前展示的第几帧
+@property (nonatomic, assign) int currentFrameIndex;//当前展示的第几帧
+@property (nonatomic, assign) CGFloat currentFrameDuration;//下一帧要展示的时间差
+@property (nonatomic, assign) CFMutableArrayRef cachedTextures;//缓存的纹理
+@property (nonatomic, strong) NSMutableArray* cachedImage;//缓存的纹理
 @property (nonatomic, assign) int radius;//当前展示的圆角
-@property (nonatomic, assign) CGFloat can_show_duration;//下一帧要展示的时间差
+
+-(void)handleMemoryWarning:(NSNotification *)notification;
 
 @end
 
@@ -76,6 +83,9 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     if (self){
         _updateBlock = callback;
         _requestId = requestId;
+        _images = [NSArray array];
+        _cachedImage = [NSMutableArray array];
+        _cachedTextures = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
         self.screenSize = [[UIScreen mainScreen] bounds].size;
         self.radius = radius;
         if (size.width != 0 && size.height != 0) self.imageSize = size;
@@ -85,28 +95,55 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
             [self loadImageWithStrForLocal:imageStr];
         }
     }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
     return self;
 }
 
 - (CVPixelBufferRef)copyPixelBuffer {
-    if ([_image images]) {
-        CVPixelBufferRelease(_target);
-        _target = [self CVPixelBufferRefFromUiImage:[[_image images] objectAtIndex:_now_index]];
-        return CVPixelBufferRetain(_target);
-    }else if (_target) {
-        return CVPixelBufferRetain(_target);
+    if ([_images count] >= 1) {
+        long cachedCount = CFArrayGetCount(_cachedTextures);
+        UIImage *image = [_images objectAtIndex:_currentFrameIndex];
+        NSInteger index = [_cachedImage indexOfObject:image];
+        CVPixelBufferRef target = (index >= 0 && cachedCount > index) ? (CVPixelBufferRef)CFArrayGetValueAtIndex(_cachedTextures, index) : NULL;
+        if (target == NULL) {
+            if (!isReceiveMemoryWarning && cachedCount < 3 * standardFramePerSecond) {
+                target = [self CVPixelBufferRefFromUiImage:image];
+                CFArrayAppendValue(_cachedTextures, target);
+                [_cachedImage addObject:image];
+                return CVPixelBufferRetain(target);
+            }else {
+                CVPixelBufferRelease(_target);
+                _target = [self CVPixelBufferRefFromUiImage:[_images objectAtIndex:_currentFrameIndex]];
+                return CVPixelBufferRetain(_target);
+            }
+        }else {
+            return CVPixelBufferRetain(target);
+        }
     }else {
         return  nil;
     }
 }
 
+-(void)handleMemoryWarning:(NSNotification *)notification{
+    isReceiveMemoryWarning = YES;
+}
+
 -(void)dispose{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     self.displayLink.paused = YES;
     [self.displayLink invalidate];
     self.displayLink = nil;
     if (_currentToken) [_currentToken cancel];
     if (_target) CVPixelBufferRelease(_target);
+    for (int i = 0; i < CFArrayGetCount(_cachedTextures); i++) {
+        CVPixelBufferRelease((CVPixelBufferRef)CFArrayGetValueAtIndex(_cachedTextures, i));
+    }
+    CFArrayRemoveAllValues(_cachedTextures);
+    CFRelease(_cachedTextures);
+    [_cachedImage removeAllObjects];
+    _images = nil;
     _target = nil;
+    
 }
 
 // 此方法能还原真实的图片
@@ -203,28 +240,74 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     }else {
         _imageSize = image.size;
     }
-    if (image.images.count > 1) {
-        _frameDuration = image.duration*1.0/image.images.count;
-        _image = image;
-        [self startGifDisplay];
+    if (image.images.count > 1 && image.duration > 0) {
+        NSMutableArray *array = [NSMutableArray arrayWithArray:[image images]];
+        CGFloat duration = image.duration*1.0;
+        CGFloat framePerSecond = [array count] / duration;
+        if (framePerSecond > standardFramePerSecond) {
+            _images = [self filterRedundanceFrame:array framePerSecond:framePerSecond];
+            _frameDuration = duration/[_images count];
+        }else {
+            _images = [NSArray arrayWithArray:array];
+            _frameDuration = duration/[_images count];
+        }
+        [self startDisplay];
     } else {
-        _target = [self CVPixelBufferRefFromUiImage:image];
+        _images = [NSArray arrayWithObject:image];
+        _currentFrameIndex = 0;
         if (_updateBlock) _updateBlock(UPDATETEXTURE, @{});
     }
 }
 
-- (void)startGifDisplay {
-    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updategif:)];
-    [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+
+- (NSArray *)filterRedundanceFrame:(NSMutableArray *)frames framePerSecond:(CGFloat)framePerSecond {
+    if (framePerSecond - standardFramePerSecond >= standardFramePerSecond) {
+//                从所有帧中抽取可用帧
+        NSMutableArray *result = [NSMutableArray array];
+        int gap = framePerSecond / standardFramePerSecond;
+        for (int i = 0; i < [frames count]; i++) {
+            if (i == 0) {
+                [result addObject: [frames objectAtIndex:i]];
+            }else if (i % gap == 0) {
+                [result addObject: [frames objectAtIndex:i]];
+            }
+        }
+        return result;
+    }else {
+//                从所有帧中移除多余帧
+        NSMutableArray *result = [NSMutableArray array];
+        int gap = standardFramePerSecond / (framePerSecond - standardFramePerSecond)  + 1;
+        for (int i = 0; i < [frames count]; i++) {
+            if (i == 0) {
+                [result addObject:[frames objectAtIndex:i]];
+            }else if (i % gap == 0) {
+                
+            }else {
+                [result addObject:[frames objectAtIndex:i]];
+            }
+        }
+        return result;
+    }
 }
 
--(void)updategif:(CADisplayLink*)displayLink{
-    self.can_show_duration -=displayLink.duration;
-    if (self.can_show_duration<=0) {
-        _now_index += 1;
-        if (_now_index >= [[_image images] count]) _now_index = 0;
-        self.can_show_duration = _frameDuration;
-        self.updateBlock(UPDATETEXTURE, @{});
+- (NSMutableArray *)filterSameFrame:(NSMutableArray *)frames {
+    if (!frames || [frames count] <= 0) return frames;
+    NSSet *set = [NSSet setWithArray:frames];
+    return [NSMutableArray arrayWithArray:[set allObjects]];
+}
+
+- (void)startDisplay {
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(update:)];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+}
+
+-(void)update:(CADisplayLink*)displayLink{
+    _currentFrameDuration -= displayLink.duration;
+    if (_currentFrameDuration<=0) {
+        _currentFrameIndex += 1;
+        if (_currentFrameIndex >= [_images count]) _currentFrameIndex = 0;
+        _currentFrameDuration = _frameDuration;
+        _updateBlock(UPDATETEXTURE, @{});
     }
 }
 

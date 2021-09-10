@@ -22,7 +22,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_image_view/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_image_view: 2c0613631c81549c6b1fac8478f96c6e2dd70796
   SDWebImage: c666b97e1fa9c64b4909816a903322018f0a9c84
 

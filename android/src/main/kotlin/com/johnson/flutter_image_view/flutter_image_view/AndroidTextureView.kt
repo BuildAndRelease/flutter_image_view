@@ -52,7 +52,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         this.surfaceEntry.surfaceTexture().setDefaultBufferSize(this.width, this.height)
         surface = Surface(this.surfaceEntry.surfaceTexture())
         val canvas = surface.lockCanvas(canvasRect)
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         surface.unlockCanvasAndPost(canvas)
 
         progressListener = object : ProgressListener {
@@ -139,7 +139,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         if (surface.isValid) {
             val canvas = surface.lockCanvas(canvasRect)
             canvas.clipPath(radiusPath)
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
             who.draw(canvas)
             surface.unlockCanvasAndPost(canvas)
         }else {
