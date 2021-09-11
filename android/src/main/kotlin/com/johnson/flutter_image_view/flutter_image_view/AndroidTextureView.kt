@@ -2,11 +2,14 @@ package com.johnson.flutter_image_view.flutter_image_view
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.view.Surface
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader
 import com.bumptech.glide.load.model.GlideUrl
@@ -22,7 +25,7 @@ import java.io.InputStream
 import java.lang.ref.WeakReference
 
 
-class AndroidTextureView(imageUrl : String, requestId : String, width : String, height : String, radius : String, context: Context, channel : MethodChannel, surfaceEntry : TextureRegistry.SurfaceTextureEntry) : Drawable.Callback {
+class AndroidTextureView(imageUrl : String, requestId : String, width : String, height : String, radius : String, context: Context, channel : MethodChannel, surfaceEntry : TextureRegistry.SurfaceTextureEntry) : Drawable.Callback, LifecycleObserver {
     val imageUrl : String = imageUrl
     val requestId : String = requestId
     val width : Int = width.toInt()
@@ -35,7 +38,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
     val context : WeakReference<Context> = WeakReference(context)
     var mOkHttpClient: OkHttpClient
 
-    lateinit var drawable : Drawable
+    var drawable : Drawable?
     val surfaceEntry : TextureRegistry.SurfaceTextureEntry = surfaceEntry
     var surface : Surface
 
@@ -50,6 +53,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         val rectF = RectF(0F,0F,this.width.toFloat(), this.height.toFloat())
         radiusPath.addRoundRect(rectF, this.radius.toFloat(), this.radius.toFloat(), Path.Direction.CW)
         this.surfaceEntry.surfaceTexture().setDefaultBufferSize(this.width, this.height)
+        drawable = null
         surface = Surface(this.surfaceEntry.surfaceTexture())
         val canvas = surface.lockCanvas(canvasRect)
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
@@ -119,6 +123,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
 
         Glide.get(context).registry.prepend(GlideUrl::class.java, InputStream::class.java, OkHttpUrlLoader.Factory(mOkHttpClient))
         Glide.with(context).asDrawable().load(this.imageUrl).skipMemoryCache(true).into(target)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
     fun dispose() {
@@ -128,7 +133,22 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
         if (drawable != null && drawable is GifDrawable) {
             (drawable as GifDrawable).stop()
         }
-        drawable.callback = null
+        drawable?.callback = null
+    }
+
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun onAppForeground() {
+        if (drawable != null && drawable is GifDrawable) {
+            (drawable as GifDrawable).start()
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun onAppBackground() {
+        if (drawable != null && drawable is GifDrawable) {
+            (drawable as GifDrawable).stop()
+        }
     }
 
     override fun unscheduleDrawable(who: Drawable, what: Runnable) {

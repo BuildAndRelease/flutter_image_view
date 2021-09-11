@@ -44,44 +44,44 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      // final result1 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
-      //     width: 178,
-      //     height: 178,
-      //     radius: 8, progressCallBack: (progress) {
-      //   print(progress);
-      // }, errorCallBack: (error) {
-      //   print(error);
-      // }, doneCallBack: () {
-      //   print('done');
-      // });
-      // final result2 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif',
-      //     width: 178,
-      //     height: 178,
-      //     radius: 8);
+      final result1 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/95bc2fa23409a6244d77b51af535fdd2.gif',
+          width: 178,
+          height: 178,
+          radius: 8, progressCallBack: (progress) {
+        print(progress);
+      }, errorCallBack: (error) {
+        print(error);
+      }, doneCallBack: () {
+        print('done');
+      });
+      final result2 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/f2a62e2ce1743516a3d47b0d5b12bb02.gif',
+          width: 178,
+          height: 178,
+          radius: 8);
       final result3 = await FlutterImageView.loadTexture(
           'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/41f8dbca24ee34ca727e6e0be8fd376d.gif',
           width: 178,
           height: 178,
           radius: 8);
-      // final result4 = await FlutterImageView.loadTexture(
-      //     'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif',
-      //     width: 178,
-      //     height: 178,
-      //     radius: 8);
+      final result4 = await FlutterImageView.loadTexture(
+          'https://fb-cdn.fanbook.mobi/fanbook/app/files/chatroom/image/29fb2a3ef9246f95e4495876e9742d2a.gif',
+          width: 178,
+          height: 178,
+          radius: 8);
 
-      // _textureId1 = result1['textureId'].toString();
-      // _requestId1 = result1['requestId'].toString();
+      _textureId1 = result1['textureId'].toString();
+      _requestId1 = result1['requestId'].toString();
 
-      // _textureId2 = result2['textureId'].toString();
-      // _requestId2 = result2['requestId'].toString();
+      _textureId2 = result2['textureId'].toString();
+      _requestId2 = result2['requestId'].toString();
 
       _textureId3 = result3['textureId'].toString();
       _requestId3 = result3['requestId'].toString();
 
-      // _textureId4 = result4['textureId'].toString();
-      // _requestId4 = result4['requestId'].toString();
+      _textureId4 = result4['textureId'].toString();
+      _requestId4 = result4['requestId'].toString();
       if (mounted) setState(() {});
     } on PlatformException {
       return;

@@ -40,4 +40,5 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     implementation "com.github.bumptech.glide:okhttp3-integration:4.12.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation  "androidx.lifecycle:lifecycle-process:2.3.1"
 }

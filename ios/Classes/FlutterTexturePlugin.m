@@ -96,6 +96,8 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         }
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didEnterBackground:) name: UIApplicationDidEnterBackgroundNotification object:nil];
     return self;
 }
 
@@ -124,8 +126,17 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
     }
 }
 
--(void)handleMemoryWarning:(NSNotification *)notification{
+#pragma mark notification
+- (void)handleMemoryWarning:(NSNotification *)notification{
     isReceiveMemoryWarning = YES;
+}
+
+- (void)didEnterBackground:(NSNotification *)notification{
+    [_displayLink setPaused:YES];
+}
+
+- (void)didBecomeActive:(NSNotification *)notification{
+    [_displayLink setPaused:NO];
 }
 
 -(void)dispose{
