@@ -95,6 +95,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
                 try {
                     weakSelf.get()?.drawable = resource
                     if (resource is GifDrawable) {
+                        resource.setLoopCount(GifDrawable.LOOP_FOREVER)
                         weakSelf.get()?.canvasRect?.let { resource.setBounds(it) }
                         resource.start()
                         resource.callback = this@AndroidTextureView
@@ -127,6 +128,7 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
     }
 
     fun dispose() {
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(this);
         context.get()?.let { Glide.with(it).clear(target) }
         surface.release()
         surfaceEntry.release()
