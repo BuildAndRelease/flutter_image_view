@@ -2,6 +2,7 @@ package com.johnson.flutter_image_view.flutter_image_view
 
 import android.content.Context
 import androidx.annotation.NonNull
+import com.bumptech.glide.Glide
 import com.taoweiji.flutter.flutter_platform_view.AndroidImageViewFactory
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -47,6 +48,9 @@ class FlutterImageViewPlugin: FlutterPlugin, MethodCallHandler {
       val textureId = call.argument<String>("textureId") ?: ""
       val render = renders.remove(textureId)
       render?.dispose()
+      result.success(true)
+    } else if (call.method == "cleanCache") {
+      Glide.get(context).clearDiskCache()
       result.success(true)
     } else {
       result.notImplemented()

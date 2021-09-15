@@ -79,8 +79,19 @@ class FlutterImageView {
     errorCallBackMap.remove(reqeustId);
     doneCallBackMap.remove(reqeustId);
     final args = {"textureId": textureId};
-    final result = await _channel.invokeMethod('dispose', args);
-    return result;
+    try {
+      return await _channel.invokeMethod('dispose', args);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> cleanCache() async {
+    try {
+      return await _channel.invokeMethod('cleanCache', {});
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Creates a widget that displays an image with native view.
