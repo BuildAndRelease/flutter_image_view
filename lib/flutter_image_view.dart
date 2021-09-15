@@ -94,6 +94,14 @@ class FlutterImageView {
     }
   }
 
+  static Future<String> cachedPath() async {
+    try {
+      return await _channel.invokeMethod('cachedPath', {});
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Creates a widget that displays an image with native view.
   ///
   /// IOS use SDWebImage Framework and return UIImageView.

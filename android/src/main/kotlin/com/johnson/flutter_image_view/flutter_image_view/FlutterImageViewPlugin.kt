@@ -52,6 +52,8 @@ class FlutterImageViewPlugin: FlutterPlugin, MethodCallHandler {
     } else if (call.method == "cleanCache") {
       Glide.get(context).clearDiskCache()
       result.success(true)
+    } else if (call.method == "cachedPath") {
+      result.success(Glide.getPhotoCacheDir(context))
     } else {
       result.notImplemented()
     }

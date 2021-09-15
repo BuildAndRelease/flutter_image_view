@@ -70,6 +70,9 @@ public class SwiftFlutterImageViewPlugin: NSObject, FlutterPlugin {
         SDImageCache.shared.clearDisk(onCompletion: nil)
         result(true)
         return
+      case "cachedPath":
+        result(SDImageCache.shared.diskCachePath)
+        return
       default:
           result(FlutterMethodNotImplemented)
           break;
