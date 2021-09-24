@@ -128,13 +128,13 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
     }
 
     fun dispose() {
+        if (drawable != null && drawable is GifDrawable) {
+            (drawable as GifDrawable).stop()
+        }
         ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
         context.get()?.let { Glide.with(it).clear(target) }
         surface.release()
         surfaceEntry.release()
-        if (drawable != null && drawable is GifDrawable) {
-            (drawable as GifDrawable).stop()
-        }
         drawable?.callback = null
     }
 
