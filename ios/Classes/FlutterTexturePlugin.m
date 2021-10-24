@@ -207,25 +207,31 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
 #pragma mark - image
 -(void)loadImageWithStrFromWeb:(NSString*)imageStr{
     _updateBlock(ONPROGRESS, @{@"progress": @"0.0", @"requestId": _requestId});
-    __weak typeof(FlutterTexturePlugin*) weakSelf = self;
+    __block __weak FlutterTexturePlugin* weakSelf = self;
+    NSString *requestId = [_requestId copy];
     [[SDImageCache sharedImageCache] diskImageDataQueryForKey:imageStr completion:^(NSData * _Nullable data) {
+        if (weakSelf == nil) return;
+        __strong FlutterTexturePlugin *strongSelf = weakSelf;
         if (data) {
-            weakSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.1", @"requestId": weakSelf.requestId});
-            [weakSelf loadImage:[UIImage sd_imageWithGIFData:data]];
-            weakSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.9", @"requestId": weakSelf.requestId});
-            weakSelf.updateBlock(ONDONE, @{@"requestId": weakSelf.requestId});
+            strongSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.1", @"requestId": requestId});
+            [strongSelf loadImage:[UIImage sd_imageWithGIFData:data]];
+            strongSelf.updateBlock(ONPROGRESS, @{@"progress": @"0.9", @"requestId": requestId});
+            strongSelf.updateBlock(ONDONE, @{@"requestId": requestId});
         } else {
-            weakSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] options:0 context:nil progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-                weakSelf.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": weakSelf.requestId});
+            __block __weak FlutterTexturePlugin* weakSelf1 = strongSelf;
+            strongSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] options:0 context:nil progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+                __strong FlutterTexturePlugin *strongSelf1 = weakSelf1;
+                strongSelf1.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": requestId});
             } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+                __strong FlutterTexturePlugin *strongSelf1 = weakSelf1;
                 if (error) {
-                    weakSelf.updateBlock(ONERROR, @{@"error": [error description], @"requestId": weakSelf.requestId});
+                    strongSelf1.updateBlock(ONERROR, @{@"error": [error description], @"requestId": requestId});
                     return;
                 }
                 if (!image) return;
                 [[SDImageCache sharedImageCache] storeImage:image imageData:data forKey:imageStr cacheType:SDImageCacheTypeDisk completion:nil];
-                [weakSelf loadImage:image];
-                weakSelf.updateBlock(ONDONE, @{@"requestId": weakSelf.requestId});
+                [strongSelf1 loadImage:image];
+                strongSelf1.updateBlock(ONDONE, @{@"requestId": requestId});
             }];
         }
     }];
