@@ -220,9 +220,11 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
         } else {
             __block __weak FlutterTexturePlugin* weakSelf1 = strongSelf;
             strongSelf.currentToken = [[SDWebImageDownloader sharedDownloader] downloadImageWithURL:[NSURL URLWithString:imageStr] options:0 context:nil progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+                if (weakSelf1 == nil) return;
                 __strong FlutterTexturePlugin *strongSelf1 = weakSelf1;
                 strongSelf1.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": requestId});
             } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+                if (weakSelf1 == nil) return;
                 __strong FlutterTexturePlugin *strongSelf1 = weakSelf1;
                 if (error) {
                     strongSelf1.updateBlock(ONERROR, @{@"error": [error description], @"requestId": requestId});
