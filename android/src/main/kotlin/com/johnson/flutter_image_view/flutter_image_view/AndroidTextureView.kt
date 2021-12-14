@@ -158,14 +158,18 @@ class AndroidTextureView(imageUrl : String, requestId : String, width : String, 
     }
 
     override fun invalidateDrawable(who: Drawable) {
-        if (surface.isValid) {
-            val canvas = surface.lockCanvas(canvasRect)
-            canvas.clipPath(radiusPath)
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-            who.draw(canvas)
-            surface.unlockCanvasAndPost(canvas)
-        }else {
-            print("invalidateDrawable")
+        try {
+            if (surface.isValid) {
+                val canvas = surface.lockCanvas(canvasRect)
+                canvas.clipPath(radiusPath)
+                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+                who.draw(canvas)
+                surface.unlockCanvasAndPost(canvas)
+            }else {
+                print("invalidateDrawable")
+            }
+        }catch (e : Exception) {
+            e.printStackTrace()
         }
     }
 
