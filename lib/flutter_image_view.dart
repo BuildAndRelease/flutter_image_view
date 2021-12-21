@@ -57,8 +57,9 @@ class FlutterImageView {
     ImageViewProgressCallBack progressCallBack,
     ImageViewErrorCallBack errorCallBack,
     ImageViewDoneCallBack doneCallBack,
+    String requestId,
   }) async {
-    final requestId = uuid.v4();
+    requestId ??= uuid.v4();
     final args = {
       "url": url,
       "width": width.toString(),
