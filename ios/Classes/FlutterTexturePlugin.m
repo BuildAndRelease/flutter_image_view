@@ -223,9 +223,7 @@ BOOL CGImageRefContainsAlpha(CGImageRef imageRef) {
                 if (weakSelf1 == nil) return;
                 __strong FlutterTexturePlugin *strongSelf1 = weakSelf1;
                 if (expectedSize != -1) {
-                    dispatch_async(dispatch_get_main_queue(), ^(){
-                        strongSelf1.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": requestId});
-                    });
+                    strongSelf1.updateBlock(ONPROGRESS, @{@"progress": [NSString stringWithFormat:@"%f", (float)receivedSize/expectedSize], @"requestId": requestId});
                 }
             } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
                 if (weakSelf1 == nil) return;
