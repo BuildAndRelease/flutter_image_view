@@ -5,3 +5,7 @@
 .pub/
 
 build/
+.fvm/
+
+.idea/
+pubspec.lock

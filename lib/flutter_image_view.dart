@@ -8,7 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
-typedef ImageViewProgressCallBack = void Function(double progress);
+typedef ImageViewProgressCallBack = void Function(double? progress);
 typedef ImageViewErrorCallBack = void Function(String error);
 typedef ImageViewDoneCallBack = void Function();
 
@@ -49,14 +49,14 @@ class FlutterImageView {
     });
   }
 
-  static Future<Map> loadTexture(
+  static Future<Map?> loadTexture(
     String url, {
     int width = 0,
     int height = 0,
     int radius = 0,
-    ImageViewProgressCallBack progressCallBack,
-    ImageViewErrorCallBack errorCallBack,
-    ImageViewDoneCallBack doneCallBack,
+    ImageViewProgressCallBack? progressCallBack,
+    ImageViewErrorCallBack? errorCallBack,
+    ImageViewDoneCallBack? doneCallBack,
   }) async {
     final requestId = uuid.v4();
     final args = {
@@ -70,11 +70,11 @@ class FlutterImageView {
       progressCallBackMap[requestId] = progressCallBack;
     if (errorCallBack != null) errorCallBackMap[requestId] = errorCallBack;
     if (doneCallBack != null) doneCallBackMap[requestId] = doneCallBack;
-    final Map textureInfo = await _channel.invokeMethod('loadTexture', args);
+    final Map? textureInfo = await _channel.invokeMethod('loadTexture', args);
     return textureInfo;
   }
 
-  static Future<bool> disposeTexture(String textureId, String reqeustId) async {
+  static Future<bool?> disposeTexture(String textureId, String reqeustId) async {
     progressCallBackMap.remove(reqeustId);
     errorCallBackMap.remove(reqeustId);
     doneCallBackMap.remove(reqeustId);
@@ -86,7 +86,7 @@ class FlutterImageView {
     }
   }
 
-  static Future<bool> cleanCache() async {
+  static Future<bool?> cleanCache() async {
     try {
       return await _channel.invokeMethod('cleanCache', {});
     } catch (e) {
@@ -94,7 +94,7 @@ class FlutterImageView {
     }
   }
 
-  static Future<String> cachedPath() async {
+  static Future<String?> cachedPath() async {
     try {
       return await _channel.invokeMethod('cachedPath', {});
     } catch (e) {
@@ -114,20 +114,20 @@ class FlutterImageView {
   /// [radius] imageview radius.
   /// [hitTestBehavior] How this widget should behave during hit testing.
   static Widget getPlatformImageView({
-    String imagePath,
-    Uint8List imageData,
-    String placeHolderPath,
-    Uint8List placeHolderData,
-    double width,
-    double height,
-    num radius,
+    String? imagePath,
+    Uint8List? imageData,
+    String? placeHolderPath,
+    Uint8List? placeHolderData,
+    double? width,
+    double? height,
+    num? radius,
     bool ignoreGesture = true,
     PlatformViewHitTestBehavior hitTestBehavior =
         PlatformViewHitTestBehavior.transparent,
-    Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
-    TextDirection layoutDirection,
-    PlatformViewCreatedCallback onPlatformViewCreated,
-    Key key,
+    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
+    TextDirection? layoutDirection,
+    PlatformViewCreatedCallback? onPlatformViewCreated,
+    Key? key,
   }) {
     final Map<String, dynamic> params = {};
     if (imagePath?.isNotEmpty ?? false) params["imagePath"] = imagePath;
