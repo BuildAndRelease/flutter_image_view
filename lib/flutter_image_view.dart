@@ -24,7 +24,7 @@ class FlutterImageView {
 
   static void init() {
     _channel.setMethodCallHandler((call) async {
-      final requestId = call.arguments['requestId'].toString() ?? "";
+      final requestId = call.arguments['requestId'].toString();
       if (requestId.isEmpty) return true;
       switch (call.method) {
         case "onProgress":
@@ -74,7 +74,8 @@ class FlutterImageView {
     return textureInfo;
   }
 
-  static Future<bool?> disposeTexture(String textureId, String reqeustId) async {
+  static Future<bool?> disposeTexture(
+      String textureId, String reqeustId) async {
     progressCallBackMap.remove(reqeustId);
     errorCallBackMap.remove(reqeustId);
     doneCallBackMap.remove(reqeustId);
