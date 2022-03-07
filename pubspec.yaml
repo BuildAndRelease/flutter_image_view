@@ -1,7 +1,6 @@
 name: flutter_image_view
 description: A new flutter plugin project.
-version: 2.0.0
-author:
+version: 2.0.1+1
 homepage:
 
 environment:

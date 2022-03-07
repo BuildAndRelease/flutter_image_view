@@ -24,17 +24,17 @@ class FlutterImageView {
 
   static void init() {
     _channel.setMethodCallHandler((call) async {
-      final requestId = call.arguments['requestId'].toString();
+      final requestId = call.arguments['requestId']?.toString() ?? '';
       if (requestId.isEmpty) return true;
       switch (call.method) {
         case "onProgress":
           final progress =
-              double.tryParse(call.arguments["progress"].toString());
+              double.tryParse(call.arguments["progress"]?.toString() ?? '');
           final progressFunction = progressCallBackMap[requestId];
           if (progressFunction != null) progressFunction(progress);
           break;
         case "onError":
-          final error = call.arguments["error"].toString();
+          final error = call.arguments["error"]?.toString() ?? '';
           final errorFunction = errorCallBackMap[requestId];
           if (errorFunction != null) errorFunction(error);
           break;
